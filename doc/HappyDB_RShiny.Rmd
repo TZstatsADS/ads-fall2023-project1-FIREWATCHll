@@ -5,7 +5,7 @@ output: html_notebook
 runtime: shiny
 ---
 
-HappyDB is a corpus of 100,000 crowd-sourced happy moments via Amazon's Mechanical Turk. You can read more about it on https://arxiv.org/abs/1801.07746.
+HappyDB is a corpus of 100,000 crowd-sourced happy moments via Amazon's Mechanical Turk. You can read more about it on <https://arxiv.org/abs/1801.07746>.
 
 Here, we explore this data set and try to answer the question, "What makes people happy?"
 
@@ -13,14 +13,14 @@ Here, we explore this data set and try to answer the question, "What makes peopl
 
 From the packages' descriptions:
 
-+ `tidyverse` is an opinionated collection of R packages designed for data science. All packages share an underlying design philosophy, grammar, and data structures;
-+ `tidytext` allows text mining using 'dplyr', 'ggplot2', and other tidy tools;
-+ `DT` provides an R interface to the JavaScript library DataTables;
-+ `scales` map data to aesthetics, and provide methods for automatically determining breaks and labels for axes and legends;
-+ `wordcloud2` provides an HTML5 interface to wordcloud for data visualization;
-+ `gridExtra` contains miscellaneous functions for "grid" graphics;
-+ `ngram` is for constructing n-grams (“tokenizing”), as well as generating new text based on the n-gram structure of a given text input (“babbling”);
-+ `Shiny` is an R package that makes it easy to build interactive web apps straight from R;
+-   `tidyverse` is an opinionated collection of R packages designed for data science. All packages share an underlying design philosophy, grammar, and data structures;
+-   `tidytext` allows text mining using 'dplyr', 'ggplot2', and other tidy tools;
+-   `DT` provides an R interface to the JavaScript library DataTables;
+-   `scales` map data to aesthetics, and provide methods for automatically determining breaks and labels for axes and legends;
+-   `wordcloud2` provides an HTML5 interface to wordcloud for data visualization;
+-   `gridExtra` contains miscellaneous functions for "grid" graphics;
+-   `ngram` is for constructing n-grams ("tokenizing"), as well as generating new text based on the n-gram structure of a given text input ("babbling");
+-   `Shiny` is an R package that makes it easy to build interactive web apps straight from R;
 
 ```{r load libraries, warning=FALSE, message=FALSE}
 
@@ -74,6 +74,7 @@ hm_data <- hm_data %>%
 ```{r}
 datatable(hm_data)
 ```
+
 ### Create a bag of words using the text data
 
 ```{r bag of words, warning=FALSE, message=FALSE}
