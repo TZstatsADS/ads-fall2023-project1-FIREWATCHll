@@ -1,0 +1,128 @@
+---
+title: "What Made You Happy Today"
+author: "Yichuan Lin"
+uid: yl5487
+output: html_document
+---
+
+```{r load libraries, warning=FALSE, message=FALSE}
+library(tm)
+library(tidytext)
+library(tidyverse)
+library(DT)
+library(wordcloud2)
+library(word2vec)
+library(ggplot2)
+library(plotly)
+library(uwot)
+```
+
+## Introduction
+
+In our daily life, there are essentially some happy moments that make us feel fulfilled and energetic. In this project, we will explore these moments from several aspects based on the Natural Language Processing (NLP) and produce a data story about 1.
+
+## Step 0 Data Process
+
+The data we used is originated from the [HappyDB](https://raw.githubusercontent.com/rit-public/HappyDB/master/happydb/data/cleaned_hm.csv) which is a database records a corpus of 100,000 crowd-sourced happy moments. Before the analysis, we should first conduct the data processing to convert the data into forms that are more fitted to be analyzed. Thankfully, the file **Text_Process.csv** had already generated the processed data set. So we would use the data set directly.
+
+## Step 1 A Glance of Data
+
+First, we should briefly see the data set's structure and the variables contained in the data set.
+
+```{r see the data}
+dat <- read.csv('../output/processed_moments.csv')
+head(dat,5)
+```
+
+```{r see variables name}
+colnames(dat)
+```
+
+We could find that the variable **predicted_category** contain the predicted category for each data. Below, we would do some analysis relevant to this variable.
+
+```{r generate table}
+table(dat$predicted_category)
+```
+
+Through the table, we observe that the **achievement** and **affection** make up most fractions in the categories of the recorded moments. As a result, we believe that these two kind of feeling bring most happiness to people.
+
+## Step 2 Generating the Basic Word Cloud.
+
+Above we briefly have a glance through the data. Here, we want to further explore the sentiment of the recorded sentences and extract the feeling that make people happy. Here, we first get the numbers of different words.
+
+```{r get # of different words}
+dat_word <- dat %>%
+  unnest_tokens(word, text)
+dat_word_count <- dat_word %>%
+  count(word, sort = TRUE)
+head(dat_word_count,5)
+```
+
+After getting a bag of counts of different words, we use it to generate our first word cloud.
+
+```{r, fig.align = "center", echo=TRUE}
+wordcloud2(dat_word_count[which(dat_word_count$n>300),])
+```
+
+Above we have generated the first word cloud. We could observe that the words like **friend**, **day**, **home**, etc. Though we could get many information from this graph, we still notice that there are some clear disadvantages about it. For instance, the word cloud contains too many words, making it looks quite overwhelming. To reduce the complexity of it, we only keep the words that appear more than 2,000 times in the book.
+
+```{r, fig.align = "center", echo=TRUE}
+dat_word_count_l2k <- dat_word_count[which(dat_word_count$n>2000),]
+wordcloud2(dat_word_count_l2k)
+```
+
+By limiting the size of each word, we are able to generate a more understandable word cloud containing only the most important words.
+
+## Step 3 Vectorization
+
+By now, we have processed the data, briefly glanced over the data structure, and generated the basic word cloud showing the frequently-appeared words. Now, what we are interested is that how we find the connection between words? Are there any similarities within the words? And how we could find people's probable interest given some triggers of his/her happiness. Here, we would use the package **word2vec** to carry out our works.
+
+```{r, warning=FALSE, message=FALSE}
+dat_vec <- dat
+set.seed(4243)
+model1 <- word2vec(x = dat_vec$text, dim = 15, iter = 20)
+```
+
+Now, we have the **model1** trained for embedding. Than we could try to type in words we are interested in and find their nearest words. For instance, I am quite interested in **game** and **basketball** and wondering the similar things that could make me happy as well.
+
+```{r, warning=FALSE, message=FALSE}
+embed <- predict(model1, c("game", "basketball"), type = "nearest", top_n = 10)
+embed
+
+```
+
+The above list 20 other things that could probably make me feel happy given that I am a game fan and a basketball fan. I might try these things by myself.
+
+Than, we could draw an interactive plot to help us map the words we are interested in.
+
+```{r}
+model2 <- word2vec(x = dat_vec$text, dim = 15, iter = 20)
+embed_plot <- as.matrix(model2)
+viz <- umap(embed_plot, n_neighbors = 15, n_threads = 2)
+```
+
+```{r, fig.align = "center", echo=TRUE}
+df_tmp <- data.frame(word = rownames(viz), 
+                     x = viz[, 1], y = viz[, 2],
+                     stringsAsFactors = FALSE)
+plot_ly(df_tmp, x = ~x, y = ~y, type = "scatter",
+        mode = 'text', text = ~word)
+
+```
+
+This graph looks quite messy, but we could put the pointer in the points we want to see the words.
+
+We all know that there is a famous analogy that: $$king-man+women=queen$$ Similarly, we want to know the most probable triggers of happiness for a person with friends likes to play game but does not like basketball. What we need to do is to predict the final position and find the nearest words around it.
+
+```{r}
+tmp <- predict(model2, newdata = 
+                 c('friend','game','basketball'),
+               type = 'embedding')
+tmp_form <- tmp['friend',] + tmp['game',] - tmp['basketball',]
+predict(model2, newdata = tmp_form, 
+        type = "nearest", top_n = 10)
+```
+
+## Summarize
+
+Below we have conducted several analysis based on the [HappyDB](https://raw.githubusercontent.com/rit-public/HappyDB/master/happydb/data/cleaned_hm.csv). However, here are still some more works that could be done remaining. For instance, we could generate a Neural Network by limiting the minimum occurrence of words to reduce the complexity. We could use it to determine to whom the input triggers most likely to belong.
